@@ -13,78 +13,59 @@ int main()
     srand(time(NULL));
 
     uint32_t Cmax = 0;
-    string NajlepszaKolejnosc;
+    string order;
+    ofstream czas;
+
+    czas.open("czas.txt");
 
     ProblemPrzeplywowy Problem1;
-    Problem1.WczytajDane("Dane.txt");
+    //Problem1.WczytajDane("Dane.txt");
     //Problem1.PrzegladZupelny(&NajlepszaKolejnosc);
     //Cmax = Problem1.AlgorytmJohnsona(&NajlepszaKolejnosc);
     //Problem1.ZmodyfikowanyNEH(&NajlepszaKolejnosc);
 
-    cout<<"NEH: "<<endl;
-    Cmax = Problem1.AkceleracjaNEH(&NajlepszaKolejnosc);
-    cout<<"Cmax "<<Cmax<<endl;
-    cout<<"NK: "<<NajlepszaKolejnosc<<endl;
-    cout<<endl;
     //Problem1.AkceleracjaNEH(&NajlepszaKolejnosc);
     //Problem1.Test();
-/*
-    cout<<"Wyzarzanie temperatura poczatkowa 100, parametr 0.90, temperatura koncowa 50"<<endl;
-    Cmax = Problem1.AlgorytmWyzarzaniaNEH(&NajlepszaKolejnosc, 100, 0.90, 50,1);
-    cout<<"Cmax "<<Cmax<<endl;
-    cout<<"NK: "<<NajlepszaKolejnosc<<endl;
-    cout<<endl;
-
-    cout<<"Wyzarzanie temperatura poczatkowa 100, parametr 0.99, temperatura koncowa 50"<<endl;
-    Cmax = Problem1.AlgorytmWyzarzaniaNEH(&NajlepszaKolejnosc, 100, 0.99, 50,1);
-    cout<<"Cmax "<<Cmax<<endl;
-    cout<<"NK: "<<NajlepszaKolejnosc<<endl;
-    cout<<endl;
-
-    cout<<"Wyzarzanie temperatura poczatkowa 100, parametr 0.80, temperatura koncowa 50"<<endl;
-    Cmax = Problem1.AlgorytmWyzarzaniaNEH(&NajlepszaKolejnosc, 100, 0.80, 50,1);
-    cout<<"Cmax "<<Cmax<<endl;
-    cout<<"NK: "<<NajlepszaKolejnosc<<endl;
-    cout<<endl;
-
-    cout<<"Losowy Wyzarzanie temperatura poczatkowa 100, parametr 0.90, temperatura koncowa 50"<<endl;
-    Cmax = Problem1.AlgorytmWyzarzaniaLosowy(&NajlepszaKolejnosc, 100, 0.90, 50,1);
-    cout<<"Cmax "<<Cmax<<endl;
-    cout<<"NK: "<<NajlepszaKolejnosc<<endl;
-    cout<<endl;
-
-    cout<<"Losowy Wyzarzanie temperatura poczatkowa 100, parametr 0.99, temperatura koncowa 50"<<endl;
-    Cmax = Problem1.AlgorytmWyzarzaniaLosowy(&NajlepszaKolejnosc, 100, 0.99, 50,1);
-    cout<<"Cmax "<<Cmax<<endl;
-    cout<<"NK: "<<NajlepszaKolejnosc<<endl;
-    cout<<endl;
-
-    cout<<"Losowy Wyzarzanie temperatura poczatkowa 100, parametr 0.80, temperatura koncowa 50"<<endl;
-    Cmax = Problem1.AlgorytmWyzarzaniaLosowy(&NajlepszaKolejnosc, 100, 0.80, 50,1);
-    cout<<"Cmax "<<Cmax<<endl;
-    cout<<"NK: "<<NajlepszaKolejnosc<<endl;
-    cout<<endl;
-
-    cout<<"Wyzarzanie temperatura poczatkowa 100, parametr 0.90, temperatura koncowa 10"<<endl;
-    Cmax = Problem1.AlgorytmWyzarzaniaNEH(&NajlepszaKolejnosc, 100, 0.90, 10,1);
-    cout<<"Cmax "<<Cmax<<endl;
-    cout<<"NK: "<<NajlepszaKolejnosc<<endl;
-    cout<<endl;
-
-    cout<<"Wyzarzanie temperatura poczatkowa 100, parametr 0.90, temperatura koncowa 30"<<endl;
-    Cmax = Problem1.AlgorytmWyzarzaniaNEH(&NajlepszaKolejnosc, 100, 0.90, 30,1);
-    cout<<"Cmax "<<Cmax<<endl;
-    cout<<"NK: "<<NajlepszaKolejnosc<<endl;
-    cout<<endl;
-
-    cout<<"Wyzarzanie temperatura poczatkowa 100, parametr 0.90, temperatura koncowa 50"<<endl;
-    Cmax = Problem1.AlgorytmWyzarzaniaNEH(&NajlepszaKolejnosc, 100, 0.90, 60,1);
-    cout<<"Cmax "<<Cmax<<endl;
-    cout<<"NK: "<<NajlepszaKolejnosc<<endl;
-    cout<<endl;
-*/
     //Problem1.TestAlgorytmow(10,3);
-    Problem1.Compare("Dane.txt");
+
+    //cout<<"Wynik Schrage: "<<Problem1.Schrage(&NajlepszaKolejnosc)<<endl;
+    //cout<<"Wynik Schrage z podzialem: "<<Problem1.SchrageZPodzialem()<<endl;
+
+    //cout<<"Wynik Schrage z kopcem: "<<Problem1.ShrageNaKopcu(&NajlepszaKolejnosc)<<endl;
+    //cout<<"Wynik Schrage z podzialem na kopcu: "<<Problem1.ShrageZPodzialemNaKopcu()<<endl;
+    Problem1.Compare("Dane-1.txt");
+   /* for (int i=3000; i<10000; i+=100)
+    {
+                    Problem1.GenerujLosoweDane(i, 3);
+                    auto start4 = std::chrono::system_clock::now();
+                    Problem1.Schrage(&order);
+                    auto stop4 = std::chrono::system_clock::now();
+                    std::chrono::duration<double>t_shrage =stop4-start4;
+
+
+
+                    auto start1 = std::chrono::system_clock::now();
+                    Problem1.SchrageZPodzialem();
+                    auto stop1= std::chrono::system_clock::now();
+                    std::chrono::duration<double>t_shrageptmn =stop1-start1;
+
+                    auto start=std::chrono::system_clock::now();
+                    Problem1.ShrageNaKopcu(&order);
+                    auto stop=std::chrono::system_clock::now();
+                    std::chrono::duration<double>t_shrage2 =stop-start;
+
+                    auto start3=std::chrono::system_clock::now();
+                    Problem1.ShrageZPodzialemNaKopcu();
+                    auto stop3=std::chrono::system_clock::now();
+                    std::chrono::duration<double>t_shrageptmn2 =stop-start;
+
+                    czas<<i<<"\t"<<t_shrage.count()<<"\t"<<t_shrageptmn.count()<<"\t"<<t_shrage2.count()<<"\t"<<t_shrageptmn2.count()<<endl;
+
+                    cout<<i<<endl;
+
+
+    }*/
+    czas.close();
 
     return 0;
 }

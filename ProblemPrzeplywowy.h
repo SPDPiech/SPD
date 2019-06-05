@@ -9,8 +9,12 @@
 #include <algorithm>
 #include <windows.h>
 #include <math.h>
-#include <ctime>
+#include <time.h>
+#include "Kopiec.h"
 #include <iomanip>
+#include <chrono>
+#include <numeric>
+
 using namespace std;
 
 class ProblemPrzeplywowy
@@ -18,6 +22,8 @@ class ProblemPrzeplywowy
     uint32_t** DaneZadan;
     uint32_t IloscMaszyn;
     uint32_t IloscZadan;
+    cKopiec KopiecMinR;
+    cKopiec KopiecMaxQ;
 
 public:
 
@@ -25,6 +31,7 @@ public:
     ~ProblemPrzeplywowy();
 
     uint32_t MaxCzasWykonania(string Kolejnosc);
+    uint32_t MaxCzasRPQ(vector<uint32_t> Kolejnosc);
     void WczytajDane(string NazwaPliku);
     uint32_t PrzegladZupelny(string* Kolejnosc);
     uint32_t AlgorytmJohnsona(string* NajlepszaKolejnosc);
@@ -35,8 +42,12 @@ public:
     uint32_t AlgorytmWyzarzaniaLosowy(string* NajlepszaKolejnosc, float PoczatkowaTemperatura, float ParametrChlodzenia, float TemperaturaGraniczna, bool UzyjSWAP);
     void GenerujLosoweDane(uint32_t LiczbaZadan, uint32_t LiczbaMaszyn);
     void TestAlgorytmow(uint32_t MaxLiczbaZadan, uint32_t MaxLiczbaMaszyn);
-    void Compare(string file);
+    uint32_t Schrage(string* NajlepszaKolejnosc);
+    uint32_t SchrageZPodzialem();
 
+    uint32_t ShrageNaKopcu(string* NajlepszaKolejnosc);
+    uint32_t ShrageZPodzialemNaKopcu();
+    void Compare(string file);
 
 };
 
@@ -47,5 +58,7 @@ struct DaneNEH
 
     DaneNEH(uint32_t NowyNumer, uint32_t NowaWartosc){NumerZadania = NowyNumer, Wartosc = NowaWartosc;}
 };
+
+
 
 #endif // PROBLEMPRZEPLYWOWY_H
