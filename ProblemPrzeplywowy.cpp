@@ -1,21 +1,5 @@
 #include "ProblemPrzeplywowy.h"
 
-ProblemPrzeplywowy::ProblemPrzeplywowy()
-    : DaneZadan(NULL), IloscMaszyn(0), IloscZadan(0) {;}
-
-ProblemPrzeplywowy::~ProblemPrzeplywowy()
-{
-    //Zwalnianie zaalokowanej pamieci
-    if(DaneZadan != NULL)
-    {
-        for(uint32_t i = 0; i < IloscZadan; i++)
-            delete[] DaneZadan[i];
-
-        delete[] DaneZadan;
-
-    }
-}
-
 /* A utility function to reverse a string  */
 void reverse(char str[], int length)
 {
@@ -68,6 +52,23 @@ char* itoa(int num, char* str, int base)
     reverse(str, i);
 
     return str;
+}
+
+
+ProblemPrzeplywowy::ProblemPrzeplywowy()
+    : DaneZadan(NULL), IloscMaszyn(0), IloscZadan(0) {;}
+
+ProblemPrzeplywowy::~ProblemPrzeplywowy()
+{
+    //Zwalnianie zaalokowanej pamieci
+    if(DaneZadan != NULL)
+    {
+        for(uint32_t i = 0; i < IloscZadan; i++)
+            delete[] DaneZadan[i];
+
+        delete[] DaneZadan;
+
+    }
 }
 
 //Funkcja obliczajaca maxymalny czas jaki jest potrzebny do wykonanania zadanej kolejnosci zadan
@@ -123,16 +124,50 @@ uint32_t ProblemPrzeplywowy::MaxCzasWykonania(string Kolejnosc)
     return Cmax;
 }
 
+uint32_t ProblemPrzeplywowy::MaxCzasRPQ(vector<uint32_t> Kolejnosc)
+{
+    vector<uint32_t>S;
+    uint32_t j = 0;
+    vector<uint32_t> Cmax;
+
+    for(; j < Kolejnosc.size(); j++)
+    {
+        if(j == 0)
+        {
+            S.push_back(DaneZadan[Kolejnosc[j]][0]);
+
+
+        }else
+        {
+            S.push_back(max(DaneZadan[Kolejnosc[j]][0], S[j-1]+DaneZadan[Kolejnosc[j-1]][1]));
+        }
+
+        Cmax.push_back(S[j] + DaneZadan[Kolejnosc[j]][1]);
+    }
+
+    uint32_t MaxWartosc = 0;
+
+    for(size_t i = 0; i < Cmax.size(); i++)
+    {
+        if((Cmax[i] + DaneZadan[Kolejnosc[i]][2]) > MaxWartosc)
+            MaxWartosc = Cmax[i] + DaneZadan[Kolejnosc[i]][2];
+    }
+
+    return MaxWartosc;
+
+}
+
 //Wczytywanie danych z pliku
 void ProblemPrzeplywowy::WczytajDane(string NazwaPliku)
 {
 
+    IloscMaszyn=3;
     fstream plik(NazwaPliku.c_str(), ios::in);
     if(plik.good())
     {
         if(DaneZadan == NULL)
         {
-            plik>>IloscZadan>>IloscMaszyn;
+            plik>>IloscZadan;
 
             DaneZadan = new uint32_t* [IloscZadan];
 
@@ -1147,7 +1182,7 @@ uint32_t ProblemPrzeplywowy::AlgorytmWyzarzaniaLosowy(string* NajlepszaKolejnosc
     {
 
         //Odkomentowac petle do while dla podpunktu 7 badan !!!
-        do{
+        //do{
         if(UzyjSWAP == true)
         {
             NumerZadania1 = (rand()%IloscZadan);
@@ -1263,7 +1298,7 @@ uint32_t ProblemPrzeplywowy::AlgorytmWyzarzaniaLosowy(string* NajlepszaKolejnosc
         CmaxPiPrim = MaxCzasWykonania(TestowanaKolejnosc);
 
         //Petla do odkomentowania dla podpunktu 7
-        }while(CmaxPi == CmaxPiPrim);
+        //}while(CmaxPi == CmaxPiPrim)
 
         //W 6 podpunkcie uzyc zamiast if tylko :
         //Prawdopodobienstwo = exp(((int)CmaxPi - (int)CmaxPiPrim)/Temperatura);
@@ -1291,6 +1326,486 @@ uint32_t ProblemPrzeplywowy::AlgorytmWyzarzaniaLosowy(string* NajlepszaKolejnosc
     *NajlepszaKolejnosc = BiezacaKolejnosc;
     return MaxCzasWykonania(BiezacaKolejnosc);
 }
+
+uint32_t ProblemPrzeplywowy::Schrage(string* NajlepszaKolejnosc)
+{
+    vector<DaneSchrage> ListaZadan;
+
+    for(uint32_t i = 0; i < IloscZadan; i++)
+    {
+        ListaZadan.push_back(DaneSchrage(i, DaneZadan[i][0], DaneZadan[i][1], DaneZadan[i][2]));
+    }
+
+    vector<uint32_t> PosortowanaTablica;
+    uint32_t MinWartosc = 2222222222;
+    uint32_t NumerZadania = 0;
+    vector<DaneSchrage>::iterator ite = ListaZadan.begin();
+    vector<DaneSchrage>::iterator Iterator;
+
+    while(!ListaZadan.empty())
+    {
+        ite = ListaZadan.begin();
+        for(; ite != ListaZadan.end(); ite++)
+        {
+            if(ite->r < MinWartosc)
+            {
+                MinWartosc = ite->r;
+                NumerZadania = ite->NumerZadania;
+                Iterator = ite;
+
+            }
+        }
+
+        PosortowanaTablica.insert(PosortowanaTablica.end(), NumerZadania);
+        ListaZadan.erase(Iterator);
+        NumerZadania = 0;
+        MinWartosc = 2222222222;
+    }
+
+/*
+    for(int k = 0; k < PosortowanaTablica.size(); k++)
+    {
+        cout<<PosortowanaTablica[k]<<endl;
+    }
+*/
+
+    uint32_t i = 1;
+    uint32_t j = 0;
+    vector<uint32_t> Kolejnosc;
+    vector<uint32_t> GotoweZadania;
+    uint32_t t = DaneZadan[PosortowanaTablica[0]][0];
+
+    int64_t MaxWartosc = -1;
+    NumerZadania = 0;
+    vector<uint32_t>::iterator Iterator1;
+    vector<uint32_t>::iterator Iterator2;
+
+    while(!GotoweZadania.empty() || !PosortowanaTablica.empty())
+    {
+        while(!PosortowanaTablica.empty() && DaneZadan[PosortowanaTablica[0]][0] <= t)
+        {
+            //cout<<"DaneZadan[PosortowanaTablica[0]][0]: "<<DaneZadan[PosortowanaTablica[0]][0]<<endl;
+            GotoweZadania.push_back(PosortowanaTablica[0]);
+            PosortowanaTablica.erase(PosortowanaTablica.begin());
+
+        }
+
+        if(GotoweZadania.empty())
+        {
+            t = DaneZadan[PosortowanaTablica[0]][0];
+
+        }else
+        {
+            Iterator1 = GotoweZadania.begin();
+            MaxWartosc = -1;
+            for(; Iterator1 != GotoweZadania.end(); Iterator1++)
+            {
+                if(DaneZadan[*Iterator1][2] > MaxWartosc)
+                {
+                    //cout<<"ite1 :"<<*Iterator1<<endl;
+                    MaxWartosc = DaneZadan[*Iterator1][2];
+                    NumerZadania = *Iterator1;
+                    Iterator2 = Iterator1;
+                }
+            }
+
+            Kolejnosc.push_back(*Iterator2);
+            i += 1;
+
+            t += DaneZadan[*Iterator2][1];
+
+            GotoweZadania.erase(Iterator2);
+        }
+
+        //Sleep(10);
+
+    }
+
+    *NajlepszaKolejnosc = "";
+    char Pomocniczy[32];
+
+    for(int k = 0; k < Kolejnosc.size(); k++)
+    {
+        NajlepszaKolejnosc->append(itoa(Kolejnosc[k], Pomocniczy, 10));
+        NajlepszaKolejnosc->append(",");
+        //cout<<Kolejnosc[k]+1<<" ";
+    }
+    //cout<<endl;
+
+    return MaxCzasRPQ(Kolejnosc);
+}
+
+uint32_t ProblemPrzeplywowy::SchrageZPodzialem()
+{
+    vector<DaneSchrage> ListaZadan;
+
+    for(uint32_t i = 0; i < IloscZadan; i++)
+    {
+        ListaZadan.push_back(DaneSchrage(i, DaneZadan[i][0], DaneZadan[i][1], DaneZadan[i][2]));
+    }
+
+    vector<uint32_t> PosortowanaTablica;
+    uint32_t MinWartosc = 2222222222;
+    uint32_t NumerZadania = 0;
+    vector<DaneSchrage>::iterator ite = ListaZadan.begin();
+    vector<DaneSchrage>::iterator Iterator;
+
+    while(!ListaZadan.empty())
+    {
+        ite = ListaZadan.begin();
+        for(; ite != ListaZadan.end(); ite++)
+        {
+            if(ite->r < MinWartosc)
+            {
+                MinWartosc = ite->r;
+                NumerZadania = ite->NumerZadania;
+                Iterator = ite;
+
+            }
+        }
+
+        PosortowanaTablica.insert(PosortowanaTablica.end(), NumerZadania);
+        ListaZadan.erase(Iterator);
+        NumerZadania = 0;
+        MinWartosc = 2222222222;
+    }
+
+/*
+    for(int k = 0; k < PosortowanaTablica.size(); k++)
+    {
+        cout<<PosortowanaTablica[k]<<endl;
+    }
+*/
+
+    uint32_t j = 0;
+    vector<uint32_t> Kolejnosc;
+    vector<uint32_t> GotoweZadania;
+    uint32_t t = 0;
+    uint32_t l = 0;
+    uint32_t Cmax = 0;
+
+    for(uint32_t i = 0; i < IloscZadan; i++)
+    {
+        ListaZadan.push_back(DaneSchrage(i, DaneZadan[i][0], DaneZadan[i][1], DaneZadan[i][2]));
+    }
+
+    ListaZadan[0].q = 411111111;
+    int64_t MaxWartosc = -1;
+    NumerZadania = 0;
+    vector<uint32_t>::iterator Iterator1;
+    vector<uint32_t>::iterator Iterator2;
+
+    while(!GotoweZadania.empty() || !PosortowanaTablica.empty())
+    {
+        while(!PosortowanaTablica.empty() && DaneZadan[PosortowanaTablica[0]][0] <= t)
+        {
+            GotoweZadania.push_back(PosortowanaTablica[0]);
+            PosortowanaTablica.erase(PosortowanaTablica.begin());
+
+            if(ListaZadan[*(GotoweZadania.end()-1)].q > ListaZadan[l].q)
+            {
+                ListaZadan[l].p = t - DaneZadan[*(GotoweZadania.end()-1)][0];
+                t = DaneZadan[*(GotoweZadania.end()-1)][0];
+
+                if(ListaZadan[l].p > 0)
+                    GotoweZadania.push_back(l);
+            }
+
+        }
+
+        if(GotoweZadania.empty())
+        {
+            t = DaneZadan[PosortowanaTablica[0]][0];
+
+        }else
+        {
+            Iterator1 = GotoweZadania.begin();
+            MaxWartosc = -1;
+            for(; Iterator1 != GotoweZadania.end(); Iterator1++)
+            {
+                if(DaneZadan[*Iterator1][2] > MaxWartosc)
+                {
+                    //cout<<"ite1 :"<<*Iterator1<<endl;
+                    MaxWartosc = DaneZadan[*Iterator1][2];
+                    NumerZadania = *Iterator1;
+                    Iterator2 = Iterator1;
+                }
+            }
+
+            l = *Iterator2;
+            t += ListaZadan[*Iterator2].p;
+            Cmax =  max(Cmax, t + DaneZadan[*Iterator2][2]);
+            GotoweZadania.erase(Iterator2);
+        }
+        //Sleep(10);
+    }
+
+    return Cmax;
+
+}
+
+uint32_t ProblemPrzeplywowy::ShrageNaKopcu(string* NajlepszaKolejnosc)
+{
+    vector<DaneSchrage> ListaZadan;
+
+    for(uint32_t i = 0; i < IloscZadan; i++)
+    {
+        ListaZadan.push_back(DaneSchrage(i+1, DaneZadan[i][0], DaneZadan[i][1], DaneZadan[i][2]));
+    }
+
+    KopiecMinR.TworzKopiecMinR(IloscZadan, &ListaZadan[0]);
+    KopiecMaxQ.TworzKopiecMaxQ(IloscZadan, NULL);
+
+
+    uint32_t i = 1;
+    uint32_t j = 0;
+    vector<uint32_t> Kolejnosc;
+    DaneSchrage Tymczasowe = KopiecMinR.SciagniZKopcaMinR();
+    uint32_t t = Tymczasowe.r;
+
+    DaneSchrage Tymczasowe1;
+
+    while(!KopiecMaxQ.PustyKopiec() || !KopiecMinR.PustyKopiec())
+    {
+
+        while(Tymczasowe.NumerZadania != 0 && Tymczasowe.r <= t)
+        {
+            KopiecMaxQ.DodajDoKopcaMaxQ(Tymczasowe);
+            Tymczasowe = KopiecMinR.SciagniZKopcaMinR();
+
+        }
+
+        if(KopiecMaxQ.PustyKopiec())
+        {
+            t = Tymczasowe.r;
+            KopiecMaxQ.DodajDoKopcaMaxQ(Tymczasowe);
+            Tymczasowe = KopiecMinR.SciagniZKopcaMinR();
+
+        }else
+        {
+            Tymczasowe1 = KopiecMaxQ.SciagniZKopcaMaxQ();
+            Kolejnosc.push_back(Tymczasowe1.NumerZadania-1);
+
+            i += 1;
+
+            t += Tymczasowe1.p;
+        }
+        //Sleep(10);
+    }
+
+    *NajlepszaKolejnosc = "";
+    char Pomocniczy[32];
+
+    for(int k = 0; k < Kolejnosc.size(); k++)
+    {
+        NajlepszaKolejnosc->append(itoa(Kolejnosc[k], Pomocniczy, 10));
+        NajlepszaKolejnosc->append(",");
+       // cout<<Kolejnosc[k]+1<<" ";
+    }
+    //cout<<endl;
+
+    return MaxCzasRPQ(Kolejnosc);
+
+}
+
+
+uint32_t ProblemPrzeplywowy::ShrageZPodzialemNaKopcu()
+{
+    vector<DaneSchrage> ListaZadan;
+
+    for(uint32_t i = 0; i < IloscZadan; i++)
+    {
+        ListaZadan.push_back(DaneSchrage(i+1, DaneZadan[i][0], DaneZadan[i][1], DaneZadan[i][2]));
+    }
+
+    KopiecMinR.TworzKopiecMinR(IloscZadan, &ListaZadan[0]);
+    KopiecMaxQ.TworzKopiecMaxQ(IloscZadan, NULL);
+
+
+    DaneSchrage Tymczasowe = KopiecMinR.SciagniZKopcaMinR();
+
+    uint32_t t = 0;
+    uint32_t l = 0;
+    uint32_t Cmax = 0;
+    DaneSchrage Tymczasowe1;
+
+    ListaZadan[0].q = 411111111;
+
+    while(!KopiecMaxQ.PustyKopiec() || !KopiecMinR.PustyKopiec())
+    {
+        while(Tymczasowe.NumerZadania != 0 && Tymczasowe.r <= t)
+        {
+            KopiecMaxQ.DodajDoKopcaMaxQ(Tymczasowe);
+
+
+            if(ListaZadan[Tymczasowe.NumerZadania-1].q > ListaZadan[l].q)
+            {
+                ListaZadan[l].p = t - Tymczasowe.r;
+                t = Tymczasowe.r;
+
+                if(ListaZadan[l].p > 0)
+                    KopiecMaxQ.DodajDoKopcaMaxQ(ListaZadan[l]);
+            }
+
+            Tymczasowe = KopiecMinR.SciagniZKopcaMinR();
+
+        }
+
+        if(KopiecMaxQ.PustyKopiec())
+        {
+            t = Tymczasowe.r;
+            KopiecMaxQ.DodajDoKopcaMaxQ(Tymczasowe);
+            Tymczasowe = KopiecMinR.SciagniZKopcaMinR();
+
+        }else
+        {
+            Tymczasowe1 = KopiecMaxQ.SciagniZKopcaMaxQ();
+
+            l = Tymczasowe1.NumerZadania-1;
+            t += ListaZadan[Tymczasowe1.NumerZadania-1].p;
+            Cmax =  max(Cmax, t + Tymczasowe1.q);
+
+        }
+        //Sleep(10);
+
+    }
+
+
+
+    return Cmax;
+
+}
+
+void ProblemPrzeplywowy::Compare(string file)
+{
+
+    string linia;
+    fstream plik;
+    ofstream zapis,czas;
+    size_t position;
+    int _tasks, _machines=3;
+    int shrage_kopiec, shrageptmn,shrage, shrageptmn_kopiec;
+    time_t start1,start2, stop1, stop2;
+    double t_shrage, t_shrageptmn, t_shrage2, t_shrageptmn2;
+    string order;
+
+    cout<<"_______________________________________________________________________"<<endl;
+    cout.width(27);
+    cout<<left<<"Ilosc zadan";
+    cout.width(27);
+    cout<<left<<"Shrage O(n^2) (bez podz./z podz.)";
+    cout<<left<<"Shrage kopiec (bez podz./z podz.)"<<endl;
+
+
+    plik.open(file.c_str(), ios::in);
+    zapis.open("zapis.txt");
+    czas.open("czas.txt");
+
+        while(!plik.eof())
+        {
+
+
+            getline(plik, linia);
+            position=linia.find("data");
+            if(position!=string::npos)
+            {
+
+
+                //cout << linia << endl; //wyœwietlenie linii
+                plik>>_tasks;
+                if (DaneZadan==NULL)
+                    {
+                        IloscZadan=_tasks;
+                        IloscMaszyn=_machines;
+
+                        DaneZadan  = new uint32_t*[IloscZadan];
+                        for(int i=0; i<IloscZadan; i++)
+                            DaneZadan[i]= new uint32_t[IloscMaszyn];
+
+                        for(int i=0; i<IloscZadan; i++)
+                        for(int j=0; j<IloscMaszyn; j++)
+                            plik>>DaneZadan[i][j];
+
+                        //cout<<tasks<<" "<<machines<<endl;
+
+                    }
+                else
+                {
+
+
+                    for(int i=0; i<IloscZadan; i++)
+                    delete[] DaneZadan[i];
+
+                    delete[] DaneZadan;
+
+                    IloscZadan=_tasks;
+                    IloscMaszyn=_machines;
+
+                    DaneZadan = new uint32_t*[IloscZadan];
+                    for(int i=0; i<IloscZadan; i++)
+                        DaneZadan[i]= new uint32_t[IloscMaszyn];
+
+                    for(int i=0; i<IloscZadan; i++)
+                        for(int j=0; j<IloscMaszyn; j++)
+                            plik>>DaneZadan[i][j];
+                    }
+                    //PrintData();
+                    auto start4 = std::chrono::system_clock::now();
+                    shrage=Schrage(&order);
+                    auto stop4 = std::chrono::system_clock::now();
+                    std::chrono::duration<double>t_shrage =stop4-start4;
+
+
+
+                    auto start1 = std::chrono::system_clock::now();
+                    shrageptmn=SchrageZPodzialem();
+                    auto stop1= std::chrono::system_clock::now();
+                    std::chrono::duration<double>t_shrageptmn =stop1-start1;
+
+                    auto start=std::chrono::system_clock::now();
+                    shrage_kopiec=ShrageNaKopcu(&order);
+                    auto stop=std::chrono::system_clock::now();
+                    std::chrono::duration<double>t_shrage2 =stop-start;
+
+                    auto start3=std::chrono::system_clock::now();
+                    shrageptmn_kopiec=ShrageZPodzialemNaKopcu();
+                    auto stop3=std::chrono::system_clock::now();
+                    std::chrono::duration<double>t_shrageptmn2 =stop-start;
+
+                    zapis<<IloscZadan<<"\t"<<shrage<<"\t"<<shrageptmn<<"\t"<<shrage_kopiec<<"\t"<<shrageptmn_kopiec<<endl;
+                    czas<<IloscZadan<<"\t"<<t_shrage.count()<<"\t"<<t_shrageptmn.count()<<"\t"<<t_shrage2.count()<<"\t"<<t_shrageptmn2.count()<<endl;
+
+                    cout.width(27);
+                    cout<<left<<IloscZadan;
+                    cout.width(12);
+                    cout<<left<<shrage;
+                    cout.width(12);
+                    cout<<left<<setprecision(8)<<shrageptmn;
+                    cout.width(12);
+                    cout<<left<<shrage_kopiec;
+                    cout.width(12);
+                    cout<<setprecision(8)<<shrageptmn_kopiec;
+                    cout<<endl;
+
+                }
+
+            }
+
+
+
+
+
+
+    plik.close();
+    zapis.close();
+    czas.close();
+}
+
+
+
+
+
+
 
 void ProblemPrzeplywowy::GenerujLosoweDane(uint32_t LiczbaZadan, uint32_t LiczbaMaszyn)
 {
@@ -1377,118 +1892,5 @@ void ProblemPrzeplywowy::TestAlgorytmow(uint32_t MaxLiczbaZadan, uint32_t MaxLic
         }
 
     }
-}
-void ProblemPrzeplywowy::Compare(string file)
-{
-
-    string linia;
-    fstream plik;
-    ofstream zapis;
-    size_t position;
-    int _tasks, _machines;
-    int neh, johnson;
-    clock_t start1,start2, stop1, stop2;
-    double t_neh, t_johnson;
-    string order;
-    int i=0;
-
-
-    cout<<"_______________________________________________________________________"<<endl;
-    cout.width(27);
-    cout<<left<<"Ilosc zadan";
-    cout.width(27);
-    cout<<left<<"Neh (Cmax/Czas)";
-    cout.width(27);
-    cout<<left<<"Johnson (Cmax/Czas)"<<endl;
-
-
-    plik.open(file.c_str(), ios::in);
-    zapis.open("zapis.txt");
-
-        while(!plik.eof())
-        {
-
-
-            getline(plik, linia);
-            position=linia.find("data");
-            if(position!=string::npos)
-            {
-
-
-                //cout << linia << endl; //wyœwietlenie linii
-                plik>>_tasks>>_machines;
-                if (DaneZadan==NULL)
-                    {
-                        IloscZadan=_tasks;
-                        IloscMaszyn=_machines;
-
-                        DaneZadan  = new uint32_t*[IloscZadan];
-                        for(int i=0; i<IloscZadan; i++)
-                            DaneZadan[i]= new uint32_t[IloscMaszyn];
-
-                        for(int i=0; i<IloscZadan; i++)
-                        for(int j=0; j<IloscMaszyn; j++)
-                            plik>>DaneZadan[i][j];
-
-                        //cout<<tasks<<" "<<machines<<endl;
-
-                    }
-                else
-                {
-
-
-                    for(int i=0; i<IloscZadan; i++)
-                    delete[] DaneZadan[i];
-
-                    delete[] DaneZadan;
-
-                    IloscZadan=_tasks;
-                    IloscMaszyn=_machines;
-
-                    DaneZadan = new uint32_t*[IloscZadan];
-                    for(int i=0; i<IloscZadan; i++)
-                        DaneZadan[i]= new uint32_t[IloscMaszyn];
-
-                    for(int i=0; i<IloscZadan; i++)
-                        for(int j=0; j<IloscMaszyn; j++)
-                            plik>>DaneZadan[i][j];
-                    }
-                    //PrintData();
-                    start1=clock();
-                    neh=AlgorytmWyzarzaniaLosowy(&order, 100, 0.90, 50,1);
-                    stop1=clock();
-                    t_neh=(double)(stop1-start1)/CLOCKS_PER_SEC;;
-                    start2=clock();
-                    johnson=AlgorytmWyzarzaniaLosowy(&order, 100, 0.90, 50,1);
-                    stop2=clock();
-                    t_johnson=(double)(stop2-start2)/CLOCKS_PER_SEC;
-                    zapis<<IloscZadan<<"\t"<<neh<<"\t"<<t_neh<<"\t"<<johnson<<"\t"<<t_johnson<<endl;
-
-                    cout.width(27);
-                    cout<<left<<IloscZadan;
-                    cout.width(12);
-                    cout<<left<<neh;
-                    cout.width(12);
-                    cout<<left<<setprecision(8)<<t_neh;
-                    cout.width(12);
-                    cout<<left<<johnson;
-                    cout.width(12);
-                    cout<<setprecision(8)<<t_johnson;
-                    cout<<endl;
-
-                    cout<<i<<endl;
-                    i++;
-
-                }
-
-            }
-
-
-
-
-
-
-    plik.close();
-    zapis.close();
 }
 
